@@ -67,7 +67,6 @@ def plot_metropolis(T, n_iter):
     ax = plt.subplot(133)
     for d in diff:
         metropolis = [np.exp(-d / t) for t in temps]
-        # plot iterations vs metropolis
         label = 'diff=%.2f' % d
         ax.plot(range(n_iter), metropolis, label=label)
         plt.xlabel('Iteration')
@@ -89,7 +88,7 @@ if __name__ == '__main__':
     plt.figure()
     plt.plot(sa.cost)  # cost变化情况
 
-    # 目标函数的评估大约有20个变化，最初变化很大，
+    # 目标函数的评估大约有35个变化，最初变化很大，
     # 随着算法收敛到最优值，在搜索接近尾声时变化很小，甚至难以察觉
 
     # -----------------------------------------------------
