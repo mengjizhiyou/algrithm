@@ -8,6 +8,7 @@ def objective(x):
 
 
 class SA:
+    # simulated annealing
     def __init__(self, X, bounds, n_iter, sigma, T):
         self.X = X
         self.bounds = bounds
