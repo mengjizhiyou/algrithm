@@ -1,0 +1,95 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def objective(x):
+    return 4 * x[0] ** 2 - 2.1 * x[0] ** 4 + (1 / 3) * x[0] ** 6 + x[0] * x[1] - 4 * x[1] ** 2 + 4 * x[1] ** 4
+
+
+class WOA:
+    def __init__(self, n_pop, n_iter, bounds, a_linear_comp=2, b_linear_comp=1, spiral=1):
+        self.n_pop = n_pop
+        self.n_iter = n_iter
+        self.bounds = bounds
+        self.dims = len(bounds)
+        self.a_linear_comp = a_linear_comp
+        self.b_linear_comp = b_linear_comp
+        self.spiral = spiral  # b
+        self.init_position()
+        self.init_leader()
+
+    def init_position(self):
+        self.positions = np.zeros((self.n_pop, self.dims + 1))
+        for i in range(self.n_pop):
+            for j in range(self.dims):
+                self.positions[i, j] = np.random.uniform(self.bounds[j][0], self.bounds[j][1])
+            self.positions[i, -1] = objective(self.positions[i, :-1])
+
+    def init_leader(self):
+        self.leader = np.zeros((1, self.dims + 1))
+        self.leader[0, -1] = objective(self.leader[0, :-1])
+
+    def update_leader(self):
+        self.leader[0,:] = np.copy(self.positions[np.argmin(self.positions[:, -1])])
+
+    def update_individual(self):
+        for i in range(self.n_pop):
+            self._bubble(i)
+
+    def _bubble(self, i):
+        """气泡捕食（局部搜索阶段）"""
+        r1, r2 = np.random.random(2)
+        self.a = 2 * self.a_linear_comp * r1 - self.a_linear_comp
+        self.c = 2 * r2
+        self.p = np.random.random(1)
+        for j in range(self.dims):
+            if self.p < 0.5:
+                if abs(self.a) >= 1:
+                    self._stochastic(i, j)
+                else:
+                    self._swing(i, j)
+            else:
+                self._spiral(i, j)
+        self.positions[i, -1] = objective(self.positions[i, :-1])
+
+    def _swing(self, i, j):
+        """摇摆包围捕食"""
+        dist_leader = abs(self.c * self.leader[0, j] - self.positions[i, j])
+        self.positions[i, j] = np.clip(self.leader[0,j] - self.a * dist_leader, self.bounds[j][0], self.bounds[j][1])
+
+    def _spiral(self, i, j):
+        """螺旋吐气泡捕食"""
+        dist_leader = abs(self.leader[0, j] - self.positions[i, j])
+        l = np.random.uniform(-1, 1)
+        self.positions[i, j] = np.clip(
+            dist_leader * np.exp(self.spiral * l) * np.cos(l * 2 * np.pi) + self.leader[0, j],
+            self.bounds[j][0], self.bounds[j][1])
+
+    def _stochastic(self, i, j):
+        """随机搜寻猎物（全局搜索阶段）"""
+        rnd = np.random.random()
+        leader_index_rnd = int(np.floor(self.n_pop * rnd))
+        position_rnd = self.positions[leader_index_rnd,:]
+        dist_rnd = abs(self.c * position_rnd[j] - self.positions[i, j])
+        self.positions[i, j] = np.clip(position_rnd[j] - self.a * dist_rnd,
+                                       self.bounds[j][0], self.bounds[j][1])
+
+    def run(self):
+        count = 0
+        self.cost=[]
+        while count <= self.n_iter:
+            self.a_linear_comp = 2 - count * (2 / self.n_iter)
+            self.b_linear_comp = -1 + count * (-1 / self.n_iter)
+            self.update_leader()
+            self.update_individual()
+            count += 1
+            self.cost.append(self.leader[0,-1])
+
+
+if __name__ == '__main__':
+    n_pop, n_iter, bounds = 20, 20, [[-5, 5], [-5, 5]]
+    woa = WOA(n_pop, n_iter, bounds)
+    woa.run()
+    best = woa.leader
+    cost = woa.cost
+
