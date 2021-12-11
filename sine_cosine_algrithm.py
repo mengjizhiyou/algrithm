@@ -46,6 +46,9 @@ class SCA:
             if objective(self.best) > objective(self.p):
                 self.best = np.copy(self.p)
                 self.cost.append(objective(self.best))
+            else:
+                self.p = np.copy(self.best)
+
             count += 1
 
 
