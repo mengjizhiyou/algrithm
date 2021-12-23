@@ -86,7 +86,7 @@ class SSA:
             self.positions[f_gt_g] = self.best + beta * np.abs(self.positions[f_gt_g] - self.best)
 
         # 处在种群中心的麻雀则随机行走以靠近别的麻雀
-        f_eq_g = np.argwhere((self.fitness[b] == objective(self.best)) > 0)
+        f_eq_g = np.argwhere((self.fitness[b] <= objective(self.best)) > 0)
         if len(f_eq_g)>0:
             k = np.random.uniform(-1, 1, size=(len(f_eq_g), self.dim))
             self.positions[f_eq_g] = self.positions[f_eq_g] + k * np.abs(self.positions[f_eq_g] - self.worst) / \
